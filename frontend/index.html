@@ -353,9 +353,9 @@
             try {
                 document.getElementById('dashboardLoader').classList.add('show');
                 
-                const medRes = await fetch("http://127.0.0.1:8000/medicine", { headers });
+                const medRes = await fetch("https://apotek-mvp-production.up.railway.app/medicine", { headers });
                 const medicines = await medRes.json();
-                const transRes = await fetch("http://127.0.0.1:8000/transaction", { headers });
+                const transRes = await fetch("https://apotek-mvp-production.up.railway.app/transaction", { headers });
                 const transactions = await transRes.json();
 
                 document.getElementById('dashboardLoader').classList.remove('show');
@@ -442,7 +442,7 @@
         let editId = null;
 
         async function loadMedicine() {
-            const response = await fetch("http://127.0.0.1:8000/medicine", { headers });
+            const response = await fetch("https://apotek-mvp-production.up.railway.app/medicine", { headers });
             const medicines = await response.json();
             
             window.allMedicines = medicines;
@@ -527,7 +527,7 @@
             };
 
             if (editId) {
-                await fetch("http://127.0.0.1:8000/medicine/" + editId, {
+                await fetch("https://apotek-mvp-production.up.railway.app/medicine/" + editId, {
                     method: "PUT",
                     headers: headers,
                     body: JSON.stringify(body)
@@ -535,7 +535,7 @@
                 editId = null;
                 document.querySelector("#addForm button[type=submit]").innerText = "Tambah";
             } else {
-                await fetch("http://127.0.0.1:8000/medicine", {
+                await fetch("https://apotek-mvp-production.up.railway.app/medicine", {
                     method: "POST",
                     headers: headers,
                     body: JSON.stringify(body)
@@ -558,7 +558,7 @@
 
         async function deleteMedicine(id) {
             if (confirm("Yakin hapus obat ini?")) {
-                await fetch("http://127.0.0.1:8000/medicine/" + id, {
+                await fetch("https://apotek-mvp-production.up.railway.app/medicine/" + id, {
                     method: "DELETE",
                     headers: headers
                 });
@@ -571,7 +571,7 @@
         let medicineList = [];
 
         async function loadDropdowns() {
-            const custRes = await fetch("http://127.0.0.1:8000/customer", { headers });
+            const custRes = await fetch("https://apotek-mvp-production.up.railway.app/customer", { headers });
             customerList = await custRes.json();
             const custSelect = document.getElementById("customer_id");
             custSelect.innerHTML = '<option value="">Baru / Walk-in</option>';
@@ -579,7 +579,7 @@
                 custSelect.innerHTML += `<option value="${c.id_customer}">${c.name}</option>`;
             });
 
-            const medRes = await fetch("http://127.0.0.1:8000/medicine", { headers });
+            const medRes = await fetch("https://apotek-mvp-production.up.railway.app/medicine", { headers });
             medicineList = await medRes.json();
             const medSelect = document.getElementById("medicine_id");
             medSelect.innerHTML = '<option value="">Pilih Obat</option>';
@@ -599,7 +599,7 @@
         }
 
         async function loadTransaction() {
-            const response = await fetch("http://127.0.0.1:8000/transaction", { headers });
+            const response = await fetch("https://apotek-mvp-production.up.railway.app/transaction", { headers });
             const data = await response.json();
 
             const tbody = document.getElementById("transactionTable");
@@ -632,7 +632,7 @@
                 date_out: document.getElementById("date_out").value || null
             };
 
-            const response = await fetch("http://127.0.0.1:8000/transaction", {
+            const response = await fetch("https://apotek-mvp-production.up.railway.app/transaction", {
                 method: "POST",
                 headers: headers,
                 body: JSON.stringify(body)
@@ -655,7 +655,7 @@
         let custEditId = null;
 
         async function loadCustomer() {
-            const response = await fetch("http://127.0.0.1:8000/customer", { headers });
+            const response = await fetch("https://apotek-mvp-production.up.railway.app/customer", { headers });
             const data = await response.json();
 
             const tbody = document.getElementById("customerTable");
@@ -691,7 +691,7 @@
             };
 
             if (custEditId) {
-                await fetch("http://127.0.0.1:8000/customer/" + custEditId, {
+                await fetch("https://apotek-mvp-production.up.railway.app/customer/" + custEditId, {
                     method: "PUT",
                     headers: headers,
                     body: JSON.stringify(body)
@@ -699,7 +699,7 @@
                 custEditId = null;
                 document.querySelector("#customerForm button[type=submit]").innerText = "Tambah";
             } else {
-                await fetch("http://127.0.0.1:8000/customer", {
+                await fetch("https://apotek-mvp-production.up.railway.app/customer", {
                     method: "POST",
                     headers: headers,
                     body: JSON.stringify(body)
@@ -713,7 +713,7 @@
 
         async function deleteCustomer(id) {
             if (confirm("Yakin hapus customer ini?")) {
-                await fetch("http://127.0.0.1:8000/customer/" + id, {
+                await fetch("https://apotek-mvp-production.up.railway.app/customer/" + id, {
                     method: "DELETE",
                     headers: headers
                 });
