@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Apotek MVP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar h4 {
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .sidebar .nav-link {
+            color: #ecf0f1;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #34495e;
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            flex: 1;
+            padding: 30px;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .card {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .alert-low-stock {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .alert-expired {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .spinner-container {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner-container.show {
+            display: block;
+        }
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.2em;
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h4>Apotek MVP</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link active" onclick="switchSection('dashboard')">📊 Dashboard</a>
+            <a class="nav-link" onclick="switchSection('medicine')">💊 Obat</a>
+            <a class="nav-link" onclick="switchSection('transaction')">🛒 Transaksi</a>
+            <a class="nav-link" onclick="switchSection('customer')">👤 Customer</a>
+        </nav>
+        <hr>
+        <button class="btn btn-outline-danger btn-sm w-100" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- DASHBOARD SECTION -->
+        <div id="dashboard" class="content-section active">
+            <div class="header-bar">
+                <h3>📊 Dashboard</h3>
+                <span id="currentDate" style="color: #666;"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Obat</h5>
+                            <p class="card-text" style="font-size: 28px;" id="totalMedicine">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Transaksi</h5>
+                            <p class="card-text" style="font-size: 28px;" id="totalTransaction">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Stok Menipis</h5>
+                            <p class="card-text" style="font-size: 28px;" id="lowStockCount">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger">
+                        <div class="card-body">
+                            <h5 class="card-title">Mendekati Expired</h5>
+                            <p class="card-text" style="font-size: 28px;" id="expiredCount">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card bg-light border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">💰 Total Penjualan</h5>
+                            <p class="card-text" style="font-size: 24px; color: #0d6efd; font-weight: bold;" id="totalRevenue">Rp -</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light border-success">
+                        <div class="card-body">
+                            <h5 class="card-title">📦 Total Unit Terjual</h5>
+                            <p class="card-text" style="font-size: 24px; color: #198754; font-weight: bold;" id="totalUnitSold">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light border-info">
+                        <div class="card-body">
+                            <h5 class="card-title">📈 Rata-rata Per Transaksi</h5>
+                            <p class="card-text" style="font-size: 24px; color: #0dcaf0; font-weight: bold;" id="avgTransaction">Rp -</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dashboardLoader" class="spinner-container">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-2">Loading data...</p>
+            </div>
+
+            <h4 class="mt-5">⚠️ Obat Stok Menipis (< 10)</h4>
+            <div id="lowStockList"></div>
+
+            <h4 class="mt-5">⚠️ Obat Mendekati Expired (< 30 hari)</h4>
+            <div id="expiredList"></div>
+        </div>
+
+        <!-- MEDICINE SECTION -->
+        <div id="medicine" class="content-section">
+            <div class="header-bar">
+                <h3>💊 Manajemen Obat</h3>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tambah / Edit Obat</h5>
+                    <form id="addForm" class="row g-2">
+                        <div class="col-md-2"><input type="text" class="form-control" id="name" placeholder="Nama Obat" required minlength="3"></div>
+                        <div class="col-md-2"><input type="number" class="form-control" id="price" placeholder="Harga" required min="1" step="1"></div>
+                        <div class="col-md-2"><input type="number" class="form-control" id="stock" placeholder="Stok" required min="0" step="1"></div>
+                        <div class="col-md-2"><input type="date" class="form-control" id="date_in" required></div>
+                        <div class="col-md-2"><input type="date" class="form-control" id="expired_date" required></div>
+                        <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Tambah</button></div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="medicineSearch" placeholder="🔍 Cari nama obat...">
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="medicineFilter">
+                                <option value="">Semua Status</option>
+                                <option value="low">Stok Menipis (<10)</option>
+                                <option value="expired">Mendekati Expired</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th><th>Nama</th><th>Harga</th><th>Stok</th><th>Masuk</th><th>Kadaluarsa</th><th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="medicineTable"></tbody>
+            </table>
+        </div>
+
+        <!-- TRANSACTION SECTION -->
+        <div id="transaction" class="content-section">
+            <div class="header-bar">
+                <h3>🛒 Transaksi Penjualan</h3>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tambah Transaksi Baru</h5>
+                    <form id="transactionForm">
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Pilih Customer</label>
+                                <select class="form-select" id="customer_id">
+                                    <option value="">Baru / Walk-in</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Atau Nama Bebas (opsional)</label>
+                                <input type="text" class="form-control" id="customer_name" placeholder="Nama customer">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Obat *</label>
+                                <select class="form-select" id="medicine_id" required>
+                                    <option value="">Pilih Obat</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Jumlah *</label>
+                                <input type="number" class="form-control" id="amount" placeholder="Qty" required min="1">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tanggal</label>
+                                <input type="date" class="form-control" id="date_out">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-success w-100">Transaksi</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12"><p id="transactionError" class="text-danger mb-0"></p></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr><th>ID</th><th>Customer</th><th>Obat</th><th>Qty</th><th>Tanggal</th></tr>
+                </thead>
+                <tbody id="transactionTable"></tbody>
+            </table>
+        </div>
+
+        <!-- CUSTOMER SECTION -->
+        <div id="customer" class="content-section">
+            <div class="header-bar">
+                <h3>👤 Data Customer</h3>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tambah / Edit Customer</h5>
+                    <form id="customerForm" class="row g-2">
+                        <div class="col-md-5"><input type="text" class="form-control" id="cust_name" placeholder="Nama Customer" required minlength="3"></div>
+                        <div class="col-md-5"><input type="tel" class="form-control" id="cust_phone" placeholder="No. HP" required pattern="[0-9]{10,}" title="Nomor HP minimal 10 digit"></div>
+                        <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Tambah</button></div>
+                    </form>
+                </div>
+            </div>
+
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr><th>ID</th><th>Nama</th><th>No. HP</th><th>Aksi</th></tr>
+                </thead>
+                <tbody id="customerTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        };
+
+        // Set tanggal hari ini
+        document.getElementById("date_out").valueAsDate = new Date();
+        document.getElementById("currentDate").textContent = new Date().toLocaleDateString('id-ID');
+
+        // SWITCH SECTION
+        function switchSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.sidebar .nav-link').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (sectionId === 'dashboard') {
+                loadDashboard();
+            } else if (sectionId === 'medicine') {
+                loadMedicine();
+            } else if (sectionId === 'transaction') {
+                loadDropdowns().then(loadTransaction);
+            } else if (sectionId === 'customer') {
+                loadCustomer();
+            }
+        }
+
+        // ===== DASHBOARD =====
+        async function loadDashboard() {
+            try {
+                document.getElementById('dashboardLoader').classList.add('show');
+                
+                const medRes = await fetch("http://127.0.0.1:8000/medicine", { headers });
+                const medicines = await medRes.json();
+                const transRes = await fetch("http://127.0.0.1:8000/transaction", { headers });
+                const transactions = await transRes.json();
+
+                document.getElementById('dashboardLoader').classList.remove('show');
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const thirtyDaysLater = new Date(today);
+                thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+
+                const lowStockMeds = medicines.filter(m => m.stock < 10);
+                const expiredMeds = medicines.filter(m => {
+                    const [year, month, day] = m.expired_date.split('-').map(Number);
+                    const expDate = new Date(year, month - 1, day);
+                    expDate.setHours(0, 0, 0, 0);
+                    const thirtyDaysAgo = new Date(today);
+                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                    return expDate >= thirtyDaysAgo && expDate <= today;
+                });
+
+                document.getElementById('totalMedicine').textContent = medicines.length;
+                document.getElementById('totalTransaction').textContent = transactions.length;
+                document.getElementById('lowStockCount').textContent = lowStockMeds.length;
+                document.getElementById('expiredCount').textContent = expiredMeds.length;
+
+                // Revenue Calculation
+                let totalRevenue = 0;
+                let totalUnitSold = 0;
+                transactions.forEach(t => {
+                    const medicine = medicines.find(m => m.id_medicine === t.medicine_id);
+                    if (medicine) {
+                        totalRevenue += medicine.price * t.amount;
+                        totalUnitSold += t.amount;
+                    }
+                });
+                const avgTransaction = transactions.length > 0 ? Math.round(totalRevenue / transactions.length) : 0;
+
+                document.getElementById('totalRevenue').textContent = 'Rp ' + totalRevenue.toLocaleString('id-ID');
+                document.getElementById('totalUnitSold').textContent = totalUnitSold + ' unit';
+                document.getElementById('avgTransaction').textContent = 'Rp ' + avgTransaction.toLocaleString('id-ID');
+
+                // Low Stock List
+                let lowStockHtml = '';
+                if (lowStockMeds.length === 0) {
+                    lowStockHtml = '<p class="text-muted">Semua obat stok aman</p>';
+                } else {
+                    lowStockHtml = '<div class="row">';
+                    lowStockMeds.forEach(m => {
+                        lowStockHtml += `
+                            <div class="col-md-6 mb-2">
+                                <div class="alert alert-low-stock">
+                                    <strong>${m.name}</strong> - Stok: ${m.stock}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    lowStockHtml += '</div>';
+                }
+                document.getElementById('lowStockList').innerHTML = lowStockHtml;
+
+                // Expired List
+                let expiredHtml = '';
+                if (expiredMeds.length === 0) {
+                    expiredHtml = '<p class="text-muted">Tidak ada obat yang mendekati expired</p>';
+                } else {
+                    expiredHtml = '<div class="row">';
+                    expiredMeds.forEach(m => {
+                        expiredHtml += `
+                            <div class="col-md-6 mb-2">
+                                <div class="alert alert-expired">
+                                    <strong>${m.name}</strong> - Expired: ${m.expired_date}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    expiredHtml += '</div>';
+                }
+                document.getElementById('expiredList').innerHTML = expiredHtml;
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // ===== MEDICINE =====
+        let editId = null;
+
+        async function loadMedicine() {
+            const response = await fetch("http://127.0.0.1:8000/medicine", { headers });
+            const medicines = await response.json();
+            
+            window.allMedicines = medicines;
+            filterMedicine();
+        }
+
+        function filterMedicine() {
+            const searchText = document.getElementById("medicineSearch")?.value.toLowerCase() || "";
+            const filterStatus = document.getElementById("medicineFilter")?.value || "";
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            let filtered = window.allMedicines || [];
+            
+            // Filter by search
+            if (searchText) {
+                filtered = filtered.filter(m => m.name.toLowerCase().includes(searchText));
+            }
+            
+            // Filter by status
+            if (filterStatus === "low") {
+                filtered = filtered.filter(m => m.stock < 10);
+            } else if (filterStatus === "expired") {
+                filtered = filtered.filter(m => {
+                    const [year, month, day] = m.expired_date.split('-').map(Number);
+                    const expDate = new Date(year, month - 1, day);
+                    expDate.setHours(0, 0, 0, 0);
+                    return expDate >= thirtyDaysAgo && expDate <= today;
+                });
+            }
+
+            const tbody = document.getElementById("medicineTable");
+            tbody.innerHTML = "";
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tidak ada data</td></tr>';
+                return;
+            }
+
+            filtered.forEach(med => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${med.id_medicine}</td>
+                        <td>${med.name}</td>
+                        <td>Rp ${med.price.toLocaleString()}</td>
+                        <td><span class="badge ${med.stock < 10 ? 'bg-warning' : 'bg-success'}">${med.stock}</span></td>
+                        <td>${med.date_in}</td>
+                        <td>${med.expired_date}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="editMedicine(${med.id_medicine}, '${med.name}', ${med.price}, ${med.stock}, '${med.date_in}', '${med.expired_date}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete('medicine', ${med.id_medicine}, '${med.name}')">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editMedicine(id, name, price, stock, date_in, expired_date) {
+            editId = id;
+            document.getElementById("name").value = name;
+            document.getElementById("price").value = price;
+            document.getElementById("stock").value = stock;
+            document.getElementById("date_in").value = date_in;
+            document.getElementById("expired_date").value = expired_date;
+            document.querySelector("#addForm button[type=submit]").innerText = "Update";
+            document.getElementById("medicine").scrollIntoView();
+        }
+
+        document.getElementById("medicineSearch")?.addEventListener("input", filterMedicine);
+        document.getElementById("medicineFilter")?.addEventListener("change", filterMedicine);
+
+        document.getElementById("addForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const body = {
+                name: document.getElementById("name").value,
+                price: parseInt(document.getElementById("price").value),
+                stock: parseInt(document.getElementById("stock").value),
+                date_in: document.getElementById("date_in").value,
+                expired_date: document.getElementById("expired_date").value
+            };
+
+            if (editId) {
+                await fetch("http://127.0.0.1:8000/medicine/" + editId, {
+                    method: "PUT",
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+                editId = null;
+                document.querySelector("#addForm button[type=submit]").innerText = "Tambah";
+            } else {
+                await fetch("http://127.0.0.1:8000/medicine", {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+            }
+
+            event.target.reset();
+            loadMedicine();
+        });
+
+        function confirmDelete(type, id, name) {
+            if (confirm(`Yakin hapus ${type} "${name}"? Tindakan ini tidak dapat dibatalkan.`)) {
+                if (type === 'medicine') {
+                    deleteMedicine(id);
+                } else if (type === 'customer') {
+                    deleteCustomer(id);
+                }
+            }
+        }
+
+        async function deleteMedicine(id) {
+            if (confirm("Yakin hapus obat ini?")) {
+                await fetch("http://127.0.0.1:8000/medicine/" + id, {
+                    method: "DELETE",
+                    headers: headers
+                });
+                loadMedicine();
+            }
+        }
+
+        // ===== TRANSACTION =====
+        let customerList = [];
+        let medicineList = [];
+
+        async function loadDropdowns() {
+            const custRes = await fetch("http://127.0.0.1:8000/customer", { headers });
+            customerList = await custRes.json();
+            const custSelect = document.getElementById("customer_id");
+            custSelect.innerHTML = '<option value="">Baru / Walk-in</option>';
+            customerList.forEach(c => {
+                custSelect.innerHTML += `<option value="${c.id_customer}">${c.name}</option>`;
+            });
+
+            const medRes = await fetch("http://127.0.0.1:8000/medicine", { headers });
+            medicineList = await medRes.json();
+            const medSelect = document.getElementById("medicine_id");
+            medSelect.innerHTML = '<option value="">Pilih Obat</option>';
+            medicineList.forEach(m => {
+                medSelect.innerHTML += `<option value="${m.id_medicine}">${m.name} (Stok: ${m.stock})</option>`;
+            });
+        }
+
+        function getCustomerName(id) {
+            const found = customerList.find(c => c.id_customer === id);
+            return found ? found.name : id;
+        }
+
+        function getMedicineName(id) {
+            const found = medicineList.find(m => m.id_medicine === id);
+            return found ? found.name : id;
+        }
+
+        async function loadTransaction() {
+            const response = await fetch("http://127.0.0.1:8000/transaction", { headers });
+            const data = await response.json();
+
+            const tbody = document.getElementById("transactionTable");
+            tbody.innerHTML = "";
+            data.forEach(t => {
+                const custName = t.customer_id ? getCustomerName(t.customer_id) : (t.customer_name || 'Walk-in');
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${t.id_transaction}</td>
+                        <td>${custName}</td>
+                        <td>${getMedicineName(t.medicine_id)}</td>
+                        <td>${t.amount}</td>
+                        <td>${t.date_out}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById("transactionForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const custId = document.getElementById("customer_id").value;
+            const custName = document.getElementById("customer_name").value;
+
+            const body = {
+                customer_id: custId ? parseInt(custId) : null,
+                customer_name: custName || null,
+                medicine_id: parseInt(document.getElementById("medicine_id").value),
+                amount: parseInt(document.getElementById("amount").value),
+                date_out: document.getElementById("date_out").value || null
+            };
+
+            const response = await fetch("http://127.0.0.1:8000/transaction", {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            if (response.ok) {
+                document.getElementById("transactionError").innerText = "";
+                event.target.reset();
+                document.getElementById("date_out").valueAsDate = new Date();
+                loadTransaction();
+                loadDropdowns();
+                loadDashboard();
+            } else {
+                const error = await response.json();
+                document.getElementById("transactionError").innerText = "❌ " + error.detail;
+            }
+        });
+
+        // ===== CUSTOMER =====
+        let custEditId = null;
+
+        async function loadCustomer() {
+            const response = await fetch("http://127.0.0.1:8000/customer", { headers });
+            const data = await response.json();
+
+            const tbody = document.getElementById("customerTable");
+            tbody.innerHTML = "";
+            data.forEach(cust => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${cust.id_customer}</td>
+                        <td>${cust.name}</td>
+                        <td>${cust.phone}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="editCustomer(${cust.id_customer}, '${cust.name}', '${cust.phone}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete('customer', ${cust.id_customer}, '${cust.name}')">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editCustomer(id, name, phone) {
+            custEditId = id;
+            document.getElementById("cust_name").value = name;
+            document.getElementById("cust_phone").value = phone;
+            document.querySelector("#customerForm button[type=submit]").innerText = "Update";
+        }
+
+        document.getElementById("customerForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const body = {
+                name: document.getElementById("cust_name").value,
+                phone: document.getElementById("cust_phone").value
+            };
+
+            if (custEditId) {
+                await fetch("http://127.0.0.1:8000/customer/" + custEditId, {
+                    method: "PUT",
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+                custEditId = null;
+                document.querySelector("#customerForm button[type=submit]").innerText = "Tambah";
+            } else {
+                await fetch("http://127.0.0.1:8000/customer", {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+            }
+
+            event.target.reset();
+            loadCustomer();
+            loadDropdowns();
+        });
+
+        async function deleteCustomer(id) {
+            if (confirm("Yakin hapus customer ini?")) {
+                await fetch("http://127.0.0.1:8000/customer/" + id, {
+                    method: "DELETE",
+                    headers: headers
+                });
+                loadCustomer();
+                loadDropdowns();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "login.html";
+        }
+
+        // Load dashboard on init
+        loadDashboard();
+    </script>
+</body>
+</html>
