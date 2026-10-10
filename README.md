@@ -1,6 +1,6 @@
 # apotek MVP
 
-Sistem manajemen barbershop dengan dashboard, inventory, dan transaksi.
+Sistem manajemen apotek dengan dashboard, inventory, dan transaksi.
 
 ## Fitur Utama
 
