@@ -1,4 +1,4 @@
-# Barbershop MVP
+# apotek MVP
 
 Sistem manajemen barbershop dengan dashboard, inventory, dan transaksi.
 
